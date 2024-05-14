@@ -30,8 +30,10 @@ The Following information is extracted from user information and added to a csv 
 # Use:
 Make sure to install the following dependencies
 
-## Dependencies
+## Install Dependencies
 ``` bash
+sudo apt-get update && upgrade
+sudo apt-get install python3 python3-pip ipython3
 pip3 install tweety
 pip3 install dotenv
 ```
