@@ -34,7 +34,8 @@ Make sure to install the following dependencies
 ``` bash
 sudo apt-get update && upgrade
 sudo apt-get install python3 python3-pip ipython3
-pip3 install tweety
+python3 -m pip install --upgrade pip
+python3 -m pip install --upgrade tweety-ns
 pip3 install dotenv
 ```
 ##
@@ -51,3 +52,7 @@ Use the following .env example and place your .env within the root directory of 
 >TRENDS='Fashion and Beauty, Fitness and Wellness, Travel, Celebrity News and Gossip, Social Causes and Activism, Entertainment, Technology and Gaming'
 
 Copy the above into your .env, replace *user* and *pass* with your Dummy Twitter account's *Username* and *Password*. You can edit the trends you would like to search for with the **TRENDS** variable. Make sure to separate trends with a ',' as shown in the example above.
+
+# Tweety Documentation
+
+>https://mahrtayyab.github.io/tweety_docs/basic/installation.html

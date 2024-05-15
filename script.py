@@ -1,8 +1,11 @@
 from tweety import Twitter
+import tweety
 import os
 from dotenv import load_dotenv
 import csv
 from time import sleep
+
+import tweety.types
 
 # load the env file
 load_dotenv();
@@ -17,13 +20,13 @@ FILENAME = os.getenv('CSV_FILENAME');
 app = Twitter("session");
 app.sign_in(username=USERNAME, password=PASSWORD);
 trends = [];
+data = [];
 fields = [
 			'Found on Trend',
 			'id',
 			'name',
 			'username',
 			'profile_img',
-			'created_at',
 			'verified',
 			'description',
 			'location',
@@ -48,34 +51,38 @@ def loadTrends():
 def extract(writer):
 	i = 0;
 	for trend in trends :
-		tweets = app.search(trend);
+		tweets = app.search(trend, pages=1, wait_time=30);
 		for tweet in tweets :
 			username = '';
 			username = tweet.author.username;
-			userinfo = app.get_user_info(username=username);
+			userinfo: tweety.types.twDataTypes.User = tweet.author;
 			if userinfo.verified and userinfo.followers_count >= 5000:
-				print('\x1B[35mTrend\x1B[0m: ', trend, ' \x1B[35mUser\x1B[0m: ', userinfo.username, '\n');
-				writer.writerow({
+				info = {
 					'Found on Trend' : trend,
 					'id' : userinfo.id,
 					'name' : userinfo.name,
 					'username' : userinfo.username,
 					'profile_img' : userinfo.profile_image_url_https,
-					'created_at' : userinfo.created_at,
 					'verified' : userinfo.verified,
 					'description' : userinfo.description,
 					'location' : userinfo.location,
 					'entities' : userinfo.entities,
 					'public_metrics' : 
 					{
-						'tweet_count' : userinfo.media_count,
+						'media_count' : userinfo.media_count,
+						'status_count': userinfo.statuses_count,
 						'listed_count' : userinfo.listed_count,
-						'followers_count' : userinfo.followers_count
+						'followers_count' : userinfo.followers_count,
 					},
 					'protected' : userinfo.protected,
-					});
+					};
+				if info not in data :
+					print('Found on \x1B[35mTrend\x1B[0m: ', trend, '\t\x1B[35mUser\x1B[0m: ', userinfo.username, '\n');
+					writer.writerow(info);
+					data.append(info);
 		if i > 2 :
-			sleep_minutes(15);
+			print('\x1B[31m--- Sleeping for 5 ---\x1B[0m');
+			sleep_minutes(5);
 			i = 0;
 		i = i + 1;
 
