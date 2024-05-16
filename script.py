@@ -1,14 +1,15 @@
 from tweety import Twitter
+from tweety.filters import SearchFilters
 import tweety
 import os
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import csv
 from time import sleep
 
 import tweety.types
 
 # load the env file
-load_dotenv();
+# load_dotenv();
 
 # Retrive variables
 USERNAME = os.getenv('USERNAME');
@@ -35,9 +36,11 @@ fields = [
 			'protected',
 		];
 
+# function to sleep for set number of minutes
 def sleep_minutes(minutes):
     sleep(minutes * 60);
 
+# loads the trends
 def loadTrends():
 	i = 0;
 	print('\n\x1B[34mLoading Trends\x1B[0m:\n');
@@ -48,43 +51,48 @@ def loadTrends():
 		i = i + 1;
 	print('\n\x1B[35mStarting Lookup\x1B[0m:\n');
 
-def extract(writer):
+# extracts the data from userinfo 
+def extract(writer, trend, userinfo):
+	if userinfo.followers_count >= 5000:
+		info = {
+			'Found on Trend' : trend,
+			'id' : userinfo.id,
+			'name' : userinfo.name,
+			'username' : userinfo.username,
+			'profile_img' : userinfo.profile_image_url_https,
+			'verified' : userinfo.verified,
+			'description' : userinfo.description,
+			'location' : userinfo.location,
+			'entities' : userinfo.entities,
+			'public_metrics' : 
+			{
+				'media_count' : userinfo.media_count,
+				'status_count': userinfo.statuses_count,
+				'listed_count' : userinfo.listed_count,
+				'followers_count' : userinfo.followers_count,
+			},
+			'protected' : userinfo.protected,
+			};
+		if info not in data :
+			print('\x1B[35mUser\x1B[0m:\t', userinfo.username, '✅');
+			writer.writerow(info);
+			data.append(info);
+		else :
+			print('User \'', userinfo.username, '\' \x1B[31malready logged!\x1B[0m ❌');
+	elif not userinfo.followers_count >= 5000:
+		print('User \'', userinfo.username, '\' \x1B[31mUser has less than 5000 followers!\x1B[0m ❌');
+			
+
+def iter(writer):
 	i = 0;
 	for trend in trends :
-		tweets = app.search(trend, pages=1, wait_time=30);
+		print('\n\x1B[34mOn Trend:\t', trend, '\x1B[0m')
+		tweets = app.search(trend, pages=3, filter_=SearchFilters.Latest(), wait_time=5);
 		for tweet in tweets :
 			username = '';
 			username = tweet.author.username;
 			userinfo: tweety.types.twDataTypes.User = tweet.author;
-			if userinfo.verified and userinfo.followers_count >= 5000:
-				info = {
-					'Found on Trend' : trend,
-					'id' : userinfo.id,
-					'name' : userinfo.name,
-					'username' : userinfo.username,
-					'profile_img' : userinfo.profile_image_url_https,
-					'verified' : userinfo.verified,
-					'description' : userinfo.description,
-					'location' : userinfo.location,
-					'entities' : userinfo.entities,
-					'public_metrics' : 
-					{
-						'media_count' : userinfo.media_count,
-						'status_count': userinfo.statuses_count,
-						'listed_count' : userinfo.listed_count,
-						'followers_count' : userinfo.followers_count,
-					},
-					'protected' : userinfo.protected,
-					};
-				if info not in data :
-					print('Found on \x1B[35mTrend\x1B[0m: ', trend, '\t\x1B[35mUser\x1B[0m: ', userinfo.username, '\n');
-					writer.writerow(info);
-					data.append(info);
-		if i > 2 :
-			print('\x1B[31m--- Sleeping for 5 ---\x1B[0m');
-			sleep_minutes(5);
-			i = 0;
-		i = i + 1;
+			extract(writer=writer, trend=trend, userinfo=userinfo);
 
 def main():
 	loadTrends();
@@ -92,7 +100,7 @@ def main():
 		with open(FILENAME, 'w') as csvfile:
 			writer = csv.DictWriter(csvfile, fieldnames=fields);
 			writer.writeheader();
-			extract(writer=writer);
+			iter(writer=writer);
 	except Exception as error:
 		print('Exception occured: ', error);
 	print('Ended\n');
