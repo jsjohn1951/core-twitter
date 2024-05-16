@@ -1,15 +1,15 @@
-from tweety import Twitter
-from tweety.filters import SearchFilters
 import tweety
 import os
-# from dotenv import load_dotenv
 import csv
-from time import sleep
-
 import tweety.types
+from tweety import Twitter
+from tweety.filters import SearchFilters
+from time import sleep
+from pathlib import Path
+from dotenv import load_dotenv
 
 # load the env file
-# load_dotenv();
+load_dotenv();
 
 # Retrive variables
 USERNAME = os.getenv('USERNAME');
@@ -97,7 +97,8 @@ def iter(writer):
 def main():
 	loadTrends();
 	try :
-		with open(FILENAME, 'w') as csvfile:
+		Path("./csv").mkdir(parents=True, exist_ok=True)
+		with open("./csv/" + FILENAME, 'w') as csvfile:
 			writer = csv.DictWriter(csvfile, fieldnames=fields);
 			writer.writeheader();
 			iter(writer=writer);
