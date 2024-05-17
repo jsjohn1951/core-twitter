@@ -23,7 +23,7 @@ app.sign_in(username=USERNAME, password=PASSWORD);
 trends = [];
 data = [];
 fields = [
-			'Found on Trend',
+			'trend',
 			'id',
 			'name',
 			'username',
@@ -49,13 +49,18 @@ def loadTrends():
 		trends.append(trend.strip());
 		print(i, ') \x1B[31m', trend.strip(), '\x1B[0m');
 		i = i + 1;
-	print('\n\x1B[35mStarting Lookup\x1B[0m:\n');
+ 
+def exists_on_db(info):
+	for entry in data:
+		if info['username'] == entry['username']:
+			return True;
+	return False;
 
 # extracts the data from userinfo 
-def extract(writer, trend, userinfo):
+def extract(trend, userinfo):
 	if userinfo.followers_count >= 5000:
 		info = {
-			'Found on Trend' : trend,
+			'trend' : trend,
 			'id' : userinfo.id,
 			'name' : userinfo.name,
 			'username' : userinfo.username,
@@ -73,9 +78,8 @@ def extract(writer, trend, userinfo):
 			},
 			'protected' : userinfo.protected,
 			};
-		if info not in data :
+		if not exists_on_db(info) :
 			print('\x1B[35mUser\x1B[0m:\t', userinfo.username, '✅');
-			writer.writerow(info);
 			data.append(info);
 		else :
 			print('User \'', userinfo.username, '\' \x1B[31malready logged!\x1B[0m ❌');
@@ -83,28 +87,66 @@ def extract(writer, trend, userinfo):
 		print('User \'', userinfo.username, '\' \x1B[31mUser has less than 5000 followers!\x1B[0m ❌');
 			
 
-def iter(writer):
+def iter():
 	i = 0;
 	for trend in trends :
 		print('\n\x1B[34mOn Trend:\t', trend, '\x1B[0m')
 		tweets = app.search(trend, pages=3, filter_=SearchFilters.Latest(), wait_time=5);
 		for tweet in tweets :
-			username = '';
-			username = tweet.author.username;
 			userinfo: tweety.types.twDataTypes.User = tweet.author;
-			extract(writer=writer, trend=trend, userinfo=userinfo);
+			extract(trend=trend, userinfo=userinfo);
 
 def main():
-	loadTrends();
-	try :
-		Path("./csv").mkdir(parents=True, exist_ok=True)
-		with open("./csv/" + FILENAME, 'w') as csvfile:
-			writer = csv.DictWriter(csvfile, fieldnames=fields);
-			writer.writeheader();
-			iter(writer=writer);
-	except Exception as error:
-		print('Exception occured: ', error);
-	print('Ended\n');
+    flag = False;
+    loadTrends();
+    try :
+        Path("./csv").mkdir(parents=True, exist_ok=True);
+        try :
+            print('\n\x1B[35mImporting Previous\x1B[0m:\n');
+            with open("./csv/" + FILENAME, 'r') as csvfile:
+                reader = csv.DictReader(csvfile, fieldnames=fields);
+                for row in reader:
+                    info = {
+						'trend' : row['trend'],
+						'id' : row['id'],
+						'name' : row['name'],
+						'username' : row['username'],
+						'profile_img' : row['profile_img'],
+						'verified' : row['verified'],
+						'description' : row['description'],
+						'location' : row['location'],
+						'entities' : row['entities'],
+						'public_metrics' : row['public_metrics'],
+						'protected' : row['protected'],
+						};
+                    data.append(info);
+                csvfile.close();
+                for item in data[1:]:
+                    print('importing:\x1B[35m', item['username'], '\x1B[0m');
+        except OSError as error:
+            print('Exception occured: ', error);
+            if error.errno == 2:
+                flag = True;
+                print('We Will Create the File!');
+            else :
+                raise error;
+
+        try :
+            print('\n\x1B[35mStarting Lookup\x1B[0m:');
+            iter();
+        except Exception as error:
+            print('Exception occured: ', error);
+        
+        with open("./csv/" + FILENAME, 'w+') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fields);
+            if flag :
+                writer.writeheader();
+            for item in data:
+                writer.writerow(item);
+            csvfile.close();
+    except Exception as error:
+        print('Exception occured: ', error);
+    print('Ended\n');
 
 if __name__=="__main__": 
     main() 
