@@ -43,15 +43,23 @@ Use the following .env example and place your .env within the root directory of 
 
 ## .env requirements:
 
->USERNAME='user'
+>TWITTER_USERNAME='user'
 
->PASSWORD='pass'
+>TWITTER_PASSWORD='pass'
 
->CSV_FILENAME='tweety_scraper.csv'
+>TWITTER_CSV_FILENAME='tweety_scraper.csv'
+
+>FOLLOWER_COUNT='1000'
+
+>MAX='100'
 
 >TRENDS='Fashion and Beauty, Fitness and Wellness, Travel, Celebrity News and Gossip, Social Causes and Activism, Entertainment, Technology and Gaming'
 
-Copy the above into your .env, replace *user* and *pass* with your Dummy Twitter account's *Username* and *Password*. You can edit the trends you would like to search for with the **TRENDS** variable. Make sure to separate trends with a ',' as shown in the example above.
+Copy the above into your .env, replace *user* and *pass* with your Dummy Twitter account's *Username* and *Password*. You can edit the trends you would like to search for with the **TRENDS** variable. Make sure to separate trends and hashtags with a ',' as shown in the example above.
+
+The MAX variable determines the maximum number of users can be collected before the program starts overwriting the previous users.
+
+FOLLOWER_COUNT determines the minimum number of followers a user must have before they can be added to the list.
 
 # Tweety Documentation
 
