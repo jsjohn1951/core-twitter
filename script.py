@@ -12,10 +12,12 @@ from dotenv import load_dotenv
 load_dotenv();
 
 # Retrive variables
-USERNAME = os.getenv('USERNAME');
-PASSWORD = os.getenv('PASSWORD');
+USERNAME = os.getenv('TWITTER_USERNAME');
+PASSWORD = os.getenv('TWITTER_PASSWORD');
+FILENAME = os.getenv('TWITTER_CSV_FILENAME');
+FOLLOWER_COUNT = int(os.getenv('FOLLOWER_COUNT'));
 TREND_STR = os.getenv('TRENDS');
-FILENAME = os.getenv('CSV_FILENAME');
+MAX_COUNT = int(os.getenv('MAX'));
 
 # Global Variables
 app = Twitter("session");
@@ -58,8 +60,9 @@ def exists_on_db(info):
 
 # extracts the data from userinfo 
 def extract(trend, userinfo):
-	if userinfo.followers_count >= 5000:
-		info = {
+    i = 1;
+    if userinfo.followers_count >= FOLLOWER_COUNT:
+        info = {
 			'trend' : trend,
 			'id' : userinfo.id,
 			'name' : userinfo.name,
@@ -78,13 +81,20 @@ def extract(trend, userinfo):
 			},
 			'protected' : userinfo.protected,
 			};
-		if not exists_on_db(info) :
-			print('\x1B[35mUser\x1B[0m:\t', userinfo.username, '✅');
-			data.append(info);
-		else :
-			print('User \'', userinfo.username, '\' \x1B[31malready logged!\x1B[0m ❌');
-	elif not userinfo.followers_count >= 5000:
-		print('User \'', userinfo.username, '\' \x1B[31mUser has less than 5000 followers!\x1B[0m ❌');
+        if not exists_on_db(info) :
+            print('\x1B[35mUser\x1B[0m:\t', userinfo.username, '✅');
+            if len(data) < MAX_COUNT:
+                data.append(info);
+            else:
+                print('\x1B[36mOverwriting\x1B[0m:\t', data[i]['username'], '\t\x1B[33m⸜(｡˃ ᵕ ˂ )⸝♡\x1B[0m');
+                data[i] = info;
+                if i >= MAX_COUNT:
+                    i = 1;
+                i = i + 1;
+        else :
+            print('User \'', userinfo.username, '\' \x1B[31malready logged!\x1B[0m ❌');
+    else :
+        print('User \'', userinfo.username, '\' \x1B[31mUser has less than',FOLLOWER_COUNT,'followers!\x1B[0m ❌');
 			
 
 def iter():
